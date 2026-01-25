@@ -37,6 +37,10 @@ async def cmd_info(message: Message):
 async def admin_help(message: Message):
     await message.answer('Йоу! Вот команды для создание и редактирования твоей пары!', reply_markup=kb.admin_help)
 
+@router.message(F.text == '🤨 Узнать id 🧐')
+async def send_user_id(message: Message):
+    await message.answer(f'*Вот твой id!*\n`{message.chat.id}`')
+
 @router.message(F.text == "💃 Создать пару 🕺")
 async def favorite(message: Message, state: FSMContext):
     second_user = find_pair(message.chat.id)
@@ -105,7 +109,7 @@ async def cancel_сreate_pair(message: Message):
         del pair_requests[str(message.chat.id)]
         await message.answer("Запрос на создание пары отменён!")
 
-#осталось дописать - удаление пары; да, убери все остальные запросы на создание пары
+#осталось дописать: удаление пары; да, убери все остальные запросы на создание пары;
 
 """
 @router.message(F.photo)
