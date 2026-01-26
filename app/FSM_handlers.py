@@ -20,6 +20,8 @@ fsmrouter = Router()
 async def fsm_pair_request(message: Message, state: FSMContext, bot: Bot):
     if not(message.text.isdigit()) or (len(message.text) != 10):
         await message.answer("Это не id пользователя! Пожалуйста, напиши либо id пользоателя, с которым хочешь составить пару, либо отмени отправку запроса", reply_markup = kb.cancel_pair_req)
+    elif message.text == str(message.chat.id):
+        await message.answer("*Этот пользователь - ты :(*\n\nНапиши id другого пользователя или отмени создание запроса", reply_markup=kb.cancel_pair_req)
     elif message.text in pair_requests and pair_requests[message.text] != str(message.chat.id):
         await message.answer("*Этот пользователь уже ждёт ответа от кого-то :(*\n\nТы можешь написать id другого пользователя или вообще отменить отправку запроса", reply_markup = kb.cancel_pair_req)
     elif find_pair(int(message.text)):
@@ -28,20 +30,16 @@ async def fsm_pair_request(message: Message, state: FSMContext, bot: Bot):
         pair_cnt = 0
         for user in pair_requests:
             if pair_requests[user] == str(message.chat.id): #если кто-то отправлял запос нашему пользователю
-                if user != message.text: #а то вдруг два гения каких-то друг дугу заявку кинут
-                    pair_cnt += 1
-                    del pair_requests[user]
-                    await bot.send_message(int(user), f'Пользователь *{message.chat.id}* отклонил твою заявку на создание пары :(')
-                else: 
+                if user == message.text: #а то вдруг два гения каких-то друг дугу заявку кинут
                     del pair_requests[user] #удаляем запрос тому, которому сейчас сами его кинули
-                    for user1 in pair_requests: #удаляем все остальные запросы нам
-                        if pair_requests[user1] == str(message.chat.id):
+                    for user1 in pair_requests: #удаляем все остальные запросы нам и ему/ей
+                        if pair_requests[user1] == str(message.chat.id) or pair_requests[user1] == user:
+                            await bot.send_message(int(user1), f'Пользователь *{pair_requests[user1]}* отклонил твою заявку на создание пары :(')
                             del pair_requests[user1]
-                            await bot.send_message(int(user1), f'Пользователь *{message.chat.id}* отклонил твою заявку на создание пары :(')
-               
+
                     create_pair(user, str(message.chat.id))
                     await message.answer("Чтож! Вы два гения, отправивших заявки друг другу! Вот это связь! Пара создана!")
-                    await bot.send_message("Чтож! Вы два гения, отправивших заявки друг другу! Вот это связь! Пара создана!")
+                    await bot.send_message(int(user), "Чтож! Вы два гения, отправивших заявки друг другу! Вот это связь! Пара создана!")
                     return        
         try:
             await bot.send_message(int(message.text), f'Пользователь {str(message.chat.id)} отправил Вам запрос на создание пары! Принять его?', reply_markup = kb.pair_y_or_n)        

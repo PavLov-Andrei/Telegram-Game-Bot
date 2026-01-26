@@ -56,7 +56,6 @@ async def favorite(message: Message, state: FSMContext):
             await state.set_state(Some_State.write_id)
             await message.answer("Отлично! Теперь скинь id того пользователя, с которым хочешь составить пару!")
 
-
 @router.callback_query(F.data == "pairyes") #кнопка "согласиться создать пару"
 async def pairyes(callback: CallbackQuery, bot: Bot):
     await callback.answer()
@@ -69,10 +68,11 @@ async def pairyes(callback: CallbackQuery, bot: Bot):
         del pair_requests[from_user] #удаляем исходный запрос к нам
         create_pair(from_user, str(callback.message.chat.id)) #соглашаемся
         for user in pair_requests: #удаляем все остальные запросы к нам
-            if pair_requests[user] == str(callback.message.chat.id):
+            if pair_requests[user] == str(callback.message.chat.id) or pair_requests[user] == from_user:
+                await bot.send_message(int(user), f'Пользователь *{pair_requests[user]}* отклонил твою заявку на создание пары :(')
                 del pair_requests[user]
-                await bot.send_message(int(user), f'Пользователь *{callback.message.chat.id}* отклонил твою заявку на создание пары :(')
-        await bot.send_message(int(from_user), f'Успех! Пользователь *{str(callback.message.chat.id)}* принял твой запрос на состалвение пары')
+        
+        await bot.send_message(int(from_user), f'Успех! Пользователь *{callback.message.chat.id}* принял твой запрос на состалвение пары')
         await bot.edit_message_text(text = f"Успех! У тебя создана пара с *{from_user}*", chat_id=callback.message.chat.id, message_id=callback.message.message_id)
 
 @router.callback_query(F.data == "pairno") #кнопка "отказаться от создания пары" когда пришло предложение
@@ -88,7 +88,6 @@ async def pairno(callback: CallbackQuery, bot: Bot):
         await bot.send_message(int(from_user), f'Пользователь *{callback.message.chat.id}* отказал тебе в запросе на создание пары!')
         await bot.edit_message_text(text = f"В запросе на создание пары отказано!", chat_id=callback.message.chat.id, message_id=callback.message.message_id)
         
-
 @router.callback_query(F.data == 'cancel_create_pail_req') #отказаться вводить id пользователя
 async def cancel_pair_req(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
@@ -99,7 +98,7 @@ async def start_del_pair(message: Message):
     if not(find_pair(message.chat.id)):
         await message.answer("У тебя пока что нет пары..")
     else:
-        await message.answer('Чтобы удалить созданную текущую пару, напиши в чат *"Я МЕНЯЮ ПАРУ"*')
+        await message.answer('Чтобы удалить текущую пару, напиши в чат *"Я МЕНЯЮ ПАРУ"*')
 
 @router.message(F.text == "Отменить запрос")
 async def cancel_сreate_pair(message: Message):
@@ -109,8 +108,14 @@ async def cancel_сreate_pair(message: Message):
         del pair_requests[str(message.chat.id)]
         await message.answer("Запрос на создание пары отменён!")
 
-#осталось дописать: удаление пары; да, убери все остальные запросы на создание пары;
-
+@router.message(F.text == "Я МЕНЯЮ ПАРУ")
+async def user_delete_pair(message: Message, bot: Bot):
+    second_user = delete_pair(message.chat.id)
+    if second_user == 0:
+        await message.answer("Бро, у тебя нету пары в этом боте :(")
+    else:
+        await message.answer("Пара удалена! Пока-Пока!")
+        await bot.send_message(second_user, f'Пользователь *{str(message.chat.id)}* решил удалить вашу пару! Пока-пока!')
 """
 @router.message(F.photo)
 """

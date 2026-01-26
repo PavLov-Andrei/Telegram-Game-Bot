@@ -35,14 +35,16 @@ def delete_pair(user_id: int) -> int: #удаляет пару, в случае 
        user_id = str(user_id)
        second_user = 0
        if user_id in data["users_pairs"]:
-              second_user = data["users_pairs"][user_id]
+              second_user = int(data["users_pairs"][user_id])
               del data["users_pairs"][user_id]
        else:
               for first_user in data["users_pairs"]: #именно отдельная переменная, т.к. значение 0 будет меняться в цикле
                      if data["users_pairs"][first_user] == user_id:
-                            second_user = first_user
+                            second_user = int(first_user)
                             del data["users_pairs"][first_user]
+                            break
        if second_user != 0:
               with open('source/source.json', 'w', encoding = 'utf-8') as file:
                      json.dump(data, file, indent=4)
+
        return second_user #если успешно удалили, возвращаем id второго пользователя, иначе - возвращаем 0
