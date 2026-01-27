@@ -18,6 +18,7 @@ class Kubs(StatesGroup):
 
 class Some_State(StatesGroup):
     write_id = State()
+    write_id_to_pair_accept = State()
 
 @router.message(CommandStart())
 async def cmd_start(message: Message):
@@ -116,6 +117,21 @@ async def user_delete_pair(message: Message, bot: Bot):
     else:
         await message.answer("Пара удалена! Пока-Пока!")
         await bot.send_message(second_user, f'Пользователь *{str(message.chat.id)}* решил удалить вашу пару! Пока-пока!')
+а
+@router.message(F.text == "❓ Мои запросы ❓")
+async def my_requstsions(message: Message, state: FSMContext):
+    #если у челика есть пара, то запросов у него их нет
+    s = ''
+    for user in pair_requests:
+        if pair_requests[user] == str(message.chat.id):
+            s += f"{s.count('.') + 1}. '{user}'\n"
+    if s == '':
+        await message.answer("*❗ Твои, твои ❗*\nК тебе пока нет запросов на создание пары :(")
+    else:
+        await state.set_state(Some_State.write_id_to_pair_accept)
+        await message.answer(f'*❗ Твои, твои ❗*\n{s}\nТеперь напиши id того пользователя, чей запрос хочешь принять! Ну, или отмени это', reply_markup=kb.cancel_pair_req)
+
+
 """
 @router.message(F.photo)
 """

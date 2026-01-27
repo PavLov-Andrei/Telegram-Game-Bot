@@ -65,6 +65,20 @@ async def cancel_pair_req_fsm(callback: CallbackQuery, state: FSMContext):
     await state.clear()
     await bot.edit_message_text(text = "Создание пары отменёноооЫЫ", chat_id=callback.message.chat.id, message_id=callback.message.message_id)
 
+@fsmrouter.message(Some_State.write_id_to_pair_accept)
+async def writed_req_id_to_accept(message: Message, state: FSMContext):
+    if not(message.text.isdigit()) or (len(message.text) != 10):
+        await message.answer("Это не id пользователя! Пожалуйста, напиши либо id пользоателя, чей запрос хочешь рассмотреть, либок  отмени отправку запроса", reply_markup = kb.cancel_pair_req)
+    elif message.text == str(message.chat.id):
+        await message.answer("*Этот пользователь - ты :(*\n\nНапиши id другого пользователя или отмени ввод", reply_markup=kb.cancel_pair_req)
+    elif message.text not in pair_requests or pair_requests[message.text] != str(message.chat.id):
+        await message.answer("*Запроса от этого пользователя к тебеуже нет :(*\n\nТы можешь написать id другого пользователя или вообще отменить отправку запроса", reply_markup = kb.cancel_pair_req)
+    else:
+        await state.clear()
+        await message.answer(f"Пользователь *{message.text}*.\nЧто сделать с его запросом?", kb.pair_y_or_n)
+
+    
+
 #@fsmrouter.message(F.text == ">> 🎲 <<")
 #async def test_kubs(message: Message):
  #   await message.answer("Это, конечно, никуда не пойдёт, но...")
