@@ -46,5 +46,27 @@ def delete_pair(user_id: int) -> int: #удаляет пару, в случае 
        if second_user != 0:
               with open('source/users.json', 'w', encoding = 'utf-8') as file:
                      json.dump(data, file, indent=4)
-
+              with open('source/game.jsom', 'r', encoding = 'utf-8') as file:
+                     data = json.load(file)
        return second_user #если успешно удалили, возвращаем id второго пользователя, иначе - возвращаем 0
+
+def create_game(first_user: int, second_user: int, game: str) -> None:
+       with open('source/game.json', 'r', encoding = 'utf-8') as file:
+              data = json.load(file)
+       data[str(first_user)+"|"+str(second_user)] = [game, 0, {}] #game, game_status{0: init, 1:in_game}, some_game_data
+       with open('source/game.json', 'w', encoding = 'utf-8') as file:
+              json.dump(data, file, indent=4)
+
+def delete_game(user: int) -> int:
+       with open('source/game.json', 'r', encoding = 'utf-8') as file:
+              data = json.load(file)
+       second_user = 0 #типа не получилось удалить никакю игру
+       for i in data:
+              if user in i: #это значение по типу "11111111111|22222222222", где цифры - id пользователей
+                     del data[i]
+                     second_user = int(i.replace(str(user), '').replace('|', ''))
+                     break
+              if second_user:
+                     with open('source/game.json', 'w', encoding = 'utf-8') as file:
+                            json.dump(data, file, indent=4)
+       return second_user

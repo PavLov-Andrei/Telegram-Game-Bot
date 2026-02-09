@@ -38,6 +38,10 @@ async def cmd_info(message: Message):
 async def admin_help(message: Message):
     await message.answer('Йоу! Вот команды для создание и редактирования твоей пары!', reply_markup=kb.admin_help)
 
+@router.message(F.text == "Игровоевое")
+async def game_help(message: Message):
+    await message.answer('Йоу! Вот все игры, в которые ты можешь пограть со своей парой!', reply_markup=kb.game_help)
+
 @router.message(F.text == '🤨 Узнать id 🧐')
 async def send_user_id(message: Message):
     await message.answer(f'*Вот твой id!*\n`{message.chat.id}`')
@@ -117,7 +121,7 @@ async def user_delete_pair(message: Message, bot: Bot):
     else:
         await message.answer("Пара удалена! Пока-Пока!")
         await bot.send_message(second_user, f'Пользователь *{str(message.chat.id)}* решил удалить вашу пару! Пока-пока!')
-а
+
 @router.message(F.text == "❓ Мои запросы ❓")
 async def my_requstsions(message: Message, state: FSMContext):
     #если у челика есть пара, то запросов у него их нет
@@ -130,6 +134,19 @@ async def my_requstsions(message: Message, state: FSMContext):
     else:
         await state.set_state(Some_State.write_id_to_pair_accept)
         await message.answer(f'*❗ Твои, твои ❗*\n{s}\nТеперь напиши id того пользователя, чей запрос хочешь принять! Ну, или отмени это', reply_markup=kb.cancel_pair_req)
+
+async def init_game(message: Message, bot: Bot): #чтобы не копировать код в 5 строк в каждую игру
+    second_user = find_pair(message.chat.id)
+    if not(second_user):
+        await message.answer("Увы, у тебя нет пары, поэтому ты не сможишь играц((")
+    else:
+        create_game(message.chat.id, second_user, message.text)
+        await bot.send_message(second_user, f'Твой напарник предложил поиграть в *«{message.text}»*!')
+
+@router.message(F.text == "Морской бой")
+async def sea_buttle(message: Message, bot: Bot):
+    game = asyncio.create_task(init_game(message, bot))
+    await game
 
 
 """
