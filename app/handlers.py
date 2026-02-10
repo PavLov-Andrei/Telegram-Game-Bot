@@ -141,13 +141,25 @@ async def init_game(message: Message, bot: Bot): #чтобы не копиров
         await message.answer("Увы, у тебя нет пары, поэтому ты не сможишь играц((")
     else:
         create_game(message.chat.id, second_user, message.text)
-        await bot.send_message(second_user, f'Твой напарник предложил поиграть в *«{message.text}»*!')
+        await bot.send_message(second_user, f'Пользователь *{message.chat.id}* предложил поиграть в *«{message.text}»*!')
 
 @router.message(F.text == "Морской бой")
 async def sea_buttle(message: Message, bot: Bot):
     game = asyncio.create_task(init_game(message, bot))
     await game
 
+@router.callback_query(F.data == "game_yes") #кнопка "отказаться от создания пары" когда пришло предложение
+async def game_accept(callback: CallbackQuery, bot: Bot):
+    first_user = find_pair(callback.message.chat.id)
+    game = find_game(callback.message.chat.id)
+    if not(first_user) or first_user != int(callback.message.chat.id.split()[1]): #если у текущего челика нет пары или она уже не с тем, кто звал
+        await bot.edit_message_text(text = "Ты уже не состоишь в паре с этим пользователем :(", chat_id=callback.message.chat.id, message_id=callback.message.message_id)
+    elif game[1] > 0:
+        await bot.edit_message_text(text = 'Прежде, чем соглашаться на эту или любую другую игру, отмените текущую. Воть список команд :)', chat_id = callback.message.chat.id, message_id = callback.message.message_id, reply_markup=kb.game_help)
+    elif (game[0]  == '0') or ("«" + game[0] + "»!" != callback.message.text.split()[-1]):
+        await bot.edit_message_text(text = "Этот запрос уже не актуален :(", chat_id = callback.message.chat.id, message_id=callback.message.message_id)
+    else:
+        pass
 
 """
 @router.message(F.photo)
